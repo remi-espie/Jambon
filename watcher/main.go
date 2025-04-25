@@ -17,8 +17,9 @@ func main() {
 	}
 
 	kubeconfig := loadConfig("kubeconfig")
-
+	ollamaHost := loadConfig("OLLAMA_HOST")
 	log.Println("Using kubeconfig:", kubeconfig)
+	log.Println("Using ollama host:", ollamaHost)
 
 	client := initKubeClient(&kubeconfig)
 
@@ -37,6 +38,9 @@ func main() {
 				continue
 			}
 			log.Printf("Event type: %s, Name: %s, Reason: %s, Message: %s\n", kubeEvent.Type, kubeEvent.Name, kubeEvent.Reason, kubeEvent.Message)
+			if kubeEvent.Type == "Warning" {
+				launchJob(client, *kubeEvent, ollamaHost)
+			}
 		}
 	}
 

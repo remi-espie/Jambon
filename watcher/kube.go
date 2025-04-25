@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/google/uuid"
+	batchv1 "k8s.io/api/batch/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
@@ -29,4 +33,32 @@ func initKubeClient(kubeconfig *string) *kubernetes.Clientset {
 	}
 
 	return clientset
+}
+
+func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost string) *batchv1.Job {
+	job := batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: fmt.Sprint("jambon-caller_", uuid.New().String()),
+		},
+		Spec: batchv1.JobSpec{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
+						{
+							Name:  "jambon-caller",
+							Image: "jambon-caller",
+							Args:  []string{"-event", event.Message, "-ollama_host", ollamaHost},
+						},
+					},
+					RestartPolicy: corev1.RestartPolicyOnFailure,
+				},
+			},
+		},
+	}
+
+	create, err := client.BatchV1().Jobs("jambon").Create(context.TODO(), &job, metav1.CreateOptions{})
+	if err != nil {
+		log.Println("Error creating job:", err)
+	}
+	return create
 }
