@@ -17,9 +17,14 @@ func main() {
 
 	kubeconfig := loadConfig("kubeconfig")
 
-	fmt.Printf("Using kubeconfig: %s\n", kubeconfig)
+	log.Println("Using kubeconfig:", kubeconfig)
 
-	fmt.Println("Hello, World!")
+	client := initKubeClient(&kubeconfig)
+
+	events := getEvent(client)
+	for _, event := range events.Items {
+		log.Printf("Event: %s, Reason: %s, Message: %s\n", event.Name, event.Reason, event.Message)
+	}
 }
 
 func loadConfig(configString string) string {
