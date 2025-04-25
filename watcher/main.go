@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
+	v1 "k8s.io/api/core/v1"
 	"log"
 	"strings"
 )
@@ -22,9 +23,23 @@ func main() {
 	client := initKubeClient(&kubeconfig)
 
 	events := getEvent(client)
-	for _, event := range events.Items {
-		log.Printf("Event: %s, Reason: %s, Message: %s\n", event.Name, event.Reason, event.Message)
+	if events == nil {
+		log.Fatal("No event stream available")
 	}
+	defer events.Stop()
+	eventChannel := events.ResultChan()
+
+	for {
+		for event := range eventChannel {
+			kubeEvent, ok := event.Object.(*v1.Event)
+			if !ok {
+				log.Println("Received an object that is not a Kubernetes event")
+				continue
+			}
+			log.Printf("Event type: %s, Name: %s, Reason: %s, Message: %s\n", kubeEvent.Type, kubeEvent.Name, kubeEvent.Reason, kubeEvent.Message)
+		}
+	}
+
 }
 
 func loadConfig(configString string) string {
