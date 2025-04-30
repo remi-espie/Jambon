@@ -4,7 +4,9 @@ import (
 	"flag"
 	"fmt"
 	htgotts "github.com/hegedustibor/htgo-tts"
+	"github.com/hegedustibor/htgo-tts/handlers"
 	"github.com/hegedustibor/htgo-tts/voices"
+	"github.com/nmeilick/go-whisper"
 	"github.com/spf13/viper"
 	"log"
 	"strings"
@@ -19,11 +21,21 @@ func main() {
 
 	ollama := callPrompt(ollamaHost, event)
 	// Local TTS
-	speech := htgotts.Speech{Folder: "audio", Language: voices.French}
+	speech := htgotts.Speech{Folder: "audio", Language: voices.French, Handler: &handlers.Native{}}
 	err := speech.Speak(ollama)
 	if err != nil {
 		log.Fatal("Error transforming text to speech:", err)
 	}
+
+	// Whisper
+	whisperClient := whisper.NewClient(whisper.WithBaseURL(whisperHost))
+	response, err := whisperClient.TranscribeFile("audio/answer.wav")
+	if err != nil {
+		log.Fatalf("Error transcribing file: %v", err)
+	}
+
+	fmt.Printf("Transcription: %s\n", response.Text)
+
 }
 
 func loadConfig(configString string) string {

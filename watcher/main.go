@@ -13,7 +13,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Error loading .env.example file, proceeding...")
+		log.Println("Error loading .env file, proceeding...")
 	}
 
 	kubeconfig := loadConfig("kubeconfig")
