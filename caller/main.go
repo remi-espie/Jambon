@@ -11,7 +11,6 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 )
 
@@ -40,25 +39,22 @@ func main() {
 		}
 		log.Println(filepath)
 
-		i := 1
-		for {
-			userTranscription, err := transcribeFile(whisperClient, "audio/answer"+strconv.Itoa(i)+".mp3")
-			i++
-			if err != nil {
-				log.Fatalf("Error transcribing file: %v", err)
-			}
-			fmt.Printf("Transcription: %s\n", userTranscription)
-			if userTranscription == "BEEP" {
-				log.Println("No transcription available, exiting...")
-				os.Exit(0)
-			}
+		userTranscription, err := transcribeFile(whisperClient, "audio/random.mp3")
+		if err != nil {
+			log.Fatalf("Error transcribing file: %v", err)
+		}
+		fmt.Printf("Transcription: %s\n", userTranscription)
+		if userTranscription == "BEEP" {
+			log.Println("No transcription available, exiting...")
+			os.Exit(0)
+		}
 
-			aiAnswer := answerUser(oc, userTranscription)
-			filepath, err := speak(whisperClient, aiAnswer)
-			if err != nil {
-				log.Fatal("Error transforming text to speech: ", err)
-			}
-			log.Println(filepath)
+		aiAnswer := answerUser(oc, userTranscription)
+		log.Println("Ollama response:", aiAnswer)
+		if aiAnswer == "true" {
+			log.Println("User can intervene, exiting...")
+		} else {
+			log.Fatal("User cannot intervene, exiting...")
 		}
 	}
 }
