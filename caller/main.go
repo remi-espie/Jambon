@@ -4,18 +4,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/google/uuid"
-	"log"
-	"strings"
-
-	htgotts "github.com/hegedustibor/htgo-tts"
-	"github.com/hegedustibor/htgo-tts/handlers"
-	"github.com/hegedustibor/htgo-tts/voices"
 	"github.com/spf13/viper"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"log"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -29,30 +26,36 @@ func main() {
 	clientSet := createK8sClient()
 	event := getEvent(clientSet, eventName, eventNamespace)
 
-	oc, ollama := initPrompt(ollamaHost, event.Message)
-	log.Println("Ollama response:", ollama)
-
-	// Local TTS
-	speech := htgotts.Speech{Folder: "audio", Language: voices.English, Handler: &handlers.Native{}}
-	filepath, err := speech.CreateSpeechFile(ollama, uuid.New().String())
-	log.Println(filepath)
-	if err != nil {
-		log.Fatal("Error transforming text to speech: ", err)
-	}
-
 	// Whisper
 	whisperClient := openaiClient(whisperHost)
-	response, err := transcribeFile(whisperClient, filepath)
-	if err != nil {
-		log.Fatalf("Error transcribing file: %v", err)
-	}
-	fmt.Printf("Transcription: %s\n", response)
-
-	answer := answerUser(oc, response)
-	filepath, err = speech.CreateSpeechFile(answer, uuid.New().String())
-	log.Println(filepath)
+	oc, ollama := initPrompt(ollamaHost, event.Message)
+	log.Println("Ollama response:", ollama)
+	// TTS
+	filepath, err := speak(whisperClient, ollama)
 	if err != nil {
 		log.Fatal("Error transforming text to speech: ", err)
+	}
+	log.Println(filepath)
+
+	i := 1
+	for {
+		userTranscription, err := transcribeFile(whisperClient, "audio/answer"+strconv.Itoa(i)+".mp3")
+		i++
+		if err != nil {
+			log.Fatalf("Error transcribing file: %v", err)
+		}
+		fmt.Printf("Transcription: %s\n", userTranscription)
+		if userTranscription == "BEEP" {
+			log.Println("No transcription available, exiting...")
+			os.Exit(0)
+		}
+
+		aiAnswer := answerUser(oc, userTranscription)
+		filepath, err := speak(whisperClient, aiAnswer)
+		if err != nil {
+			log.Fatal("Error transforming text to speech: ", err)
+		}
+		log.Println(filepath)
 	}
 }
 
