@@ -18,8 +18,10 @@ func main() {
 
 	kubeconfig := loadConfig("KUBECONFIG")
 	ollamaHost := loadConfig("OLLAMA_HOST")
+	whisperHost := loadConfig("WHISPER_HOST")
 	log.Println("Using kubeconfig:", kubeconfig)
 	log.Println("Using ollama host:", ollamaHost)
+	log.Println("Using whisper host:", whisperHost)
 
 	client := initKubeClient(&kubeconfig)
 
@@ -39,7 +41,7 @@ func main() {
 			}
 			log.Printf("Event type: %s, Name: %s, Reason: %s, Message: %s\n", kubeEvent.Type, kubeEvent.Name, kubeEvent.Reason, kubeEvent.Message)
 			if kubeEvent.Type == "Warning" {
-				launchJob(client, *kubeEvent, ollamaHost)
+				launchJob(client, *kubeEvent, ollamaHost, whisperHost)
 			}
 		}
 	}

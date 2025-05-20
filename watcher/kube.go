@@ -50,7 +50,7 @@ func initKubeClient(kubeconfig *string) *kubernetes.Clientset {
 	return clientset
 }
 
-func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost string) *batchv1.Job {
+func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost string, whisperHost string) *batchv1.Job {
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprint("jambon-caller_", uuid.New().String()),
@@ -62,7 +62,7 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 						{
 							Name:  "jambon-caller",
 							Image: "jambon-caller",
-							Args:  []string{"-event", event.Message, "-ollama_host", ollamaHost},
+							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace, "-ollama_host", ollamaHost, "whisper_host", whisperHost},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyOnFailure,
