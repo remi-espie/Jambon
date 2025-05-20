@@ -7,7 +7,6 @@ import (
 	htgotts "github.com/hegedustibor/htgo-tts"
 	"github.com/hegedustibor/htgo-tts/handlers"
 	"github.com/hegedustibor/htgo-tts/voices"
-	"github.com/nmeilick/go-whisper"
 	"github.com/spf13/viper"
 	"log"
 	"strings"
@@ -31,14 +30,14 @@ func main() {
 	}
 
 	// Whisper
-	whisperClient := whisper.NewClient(whisper.WithBaseURL(whisperHost))
-	response, err := whisperClient.TranscribeFile("audio/answer.wav")
+	whisperClient := openaiClient(whisperHost)
+	response, err := transcribeFile(whisperClient, filepath)
 	if err != nil {
 		log.Fatalf("Error transcribing file: %v", err)
 	}
-	fmt.Printf("Transcription: %s\n", response.Text)
+	fmt.Printf("Transcription: %s\n", response)
 
-	answer := answerUser(oc, response.Text)
+	answer := answerUser(oc, response)
 	filepath, err = speech.CreateSpeechFile(answer, uuid.New().String())
 	log.Println(filepath)
 	if err != nil {

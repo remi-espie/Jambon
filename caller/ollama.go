@@ -29,7 +29,8 @@ func initPrompt(ollamaHost string, event string) (*ollamaclient.Config, string) 
 }
 
 func answerUser(oc *ollamaclient.Config, message string) string {
-	output, err := oc.GetOutputWithSeedAndTemp(message, true, 42, 0.7)
+	prompt := "The user has received your response, and is answering the following: `" + message + "`. Please continue helping him, provide a very concise answer."
+	output, err := oc.GetOutputWithSeedAndTemp(prompt, true, 42, 0.7)
 	log.Println("Ollama response:", output)
 	if err != nil {
 		log.Fatal("Error getting ollama output:", err)
