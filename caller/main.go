@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/google/uuid"
 	htgotts "github.com/hegedustibor/htgo-tts"
 	"github.com/hegedustibor/htgo-tts/handlers"
 	"github.com/hegedustibor/htgo-tts/voices"
@@ -19,12 +20,14 @@ func main() {
 
 	log.Println("Using event:", event)
 
-	ollama := callPrompt(ollamaHost, event)
+	oc, ollama := initPrompt(ollamaHost, event)
+	log.Println("Ollama response:", ollama)
 	// Local TTS
-	speech := htgotts.Speech{Folder: "audio", Language: voices.French, Handler: &handlers.Native{}}
-	err := speech.Speak(ollama)
+	speech := htgotts.Speech{Folder: "audio", Language: voices.English, Handler: &handlers.Native{}}
+	filepath, err := speech.CreateSpeechFile(ollama, uuid.New().String())
+	log.Println(filepath)
 	if err != nil {
-		log.Fatal("Error transforming text to speech:", err)
+		log.Fatal("Error transforming text to speech: ", err)
 	}
 
 	// Whisper
@@ -33,9 +36,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error transcribing file: %v", err)
 	}
-
 	fmt.Printf("Transcription: %s\n", response.Text)
 
+	answer := answerUser(oc, response.Text)
+	filepath, err = speech.CreateSpeechFile(answer, uuid.New().String())
+	log.Println(filepath)
+	if err != nil {
+		log.Fatal("Error transforming text to speech: ", err)
+	}
 }
 
 func loadConfig(configString string) string {

@@ -9,6 +9,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
 )
@@ -19,6 +20,20 @@ func getEvent(client *kubernetes.Clientset) watch.Interface {
 		log.Println("Error getting events:", err)
 	}
 	return events
+}
+
+func getInClusterConfig() *kubernetes.Clientset {
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		log.Fatal("Error getting in-cluster config:", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		log.Fatal("Error creating Kubernetes clientset:", err)
+	}
+
+	return clientset
 }
 
 func initKubeClient(kubeconfig *string) *kubernetes.Clientset {

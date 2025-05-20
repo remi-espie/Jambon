@@ -16,7 +16,7 @@ func main() {
 		log.Println("Error loading .env file, proceeding...")
 	}
 
-	kubeconfig := loadConfig("kubeconfig")
+	kubeconfig := loadConfig("KUBECONFIG")
 	ollamaHost := loadConfig("OLLAMA_HOST")
 	log.Println("Using kubeconfig:", kubeconfig)
 	log.Println("Using ollama host:", ollamaHost)
