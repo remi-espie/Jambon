@@ -26,36 +26,40 @@ func main() {
 	clientSet := createK8sClient()
 	event := getEvent(clientSet, eventName, eventNamespace)
 
-	// Whisper
-	whisperClient := openaiClient(whisperHost)
-	oc, ollama := initPrompt(ollamaHost, event.Message)
-	log.Println("Ollama response:", ollama)
-	// TTS
-	filepath, err := speak(whisperClient, ollama)
-	if err != nil {
-		log.Fatal("Error transforming text to speech: ", err)
-	}
-	log.Println(filepath)
+	autoresolve := false
 
-	i := 1
-	for {
-		userTranscription, err := transcribeFile(whisperClient, "audio/answer"+strconv.Itoa(i)+".mp3")
-		i++
-		if err != nil {
-			log.Fatalf("Error transcribing file: %v", err)
-		}
-		fmt.Printf("Transcription: %s\n", userTranscription)
-		if userTranscription == "BEEP" {
-			log.Println("No transcription available, exiting...")
-			os.Exit(0)
-		}
-
-		aiAnswer := answerUser(oc, userTranscription)
-		filepath, err := speak(whisperClient, aiAnswer)
+	if !autoresolve {
+		// Whisper
+		whisperClient := openaiClient(whisperHost)
+		oc, ollama := initPrompt(ollamaHost, event.Message)
+		log.Println("Ollama response:", ollama)
+		// TTS
+		filepath, err := speak(whisperClient, ollama)
 		if err != nil {
 			log.Fatal("Error transforming text to speech: ", err)
 		}
 		log.Println(filepath)
+
+		i := 1
+		for {
+			userTranscription, err := transcribeFile(whisperClient, "audio/answer"+strconv.Itoa(i)+".mp3")
+			i++
+			if err != nil {
+				log.Fatalf("Error transcribing file: %v", err)
+			}
+			fmt.Printf("Transcription: %s\n", userTranscription)
+			if userTranscription == "BEEP" {
+				log.Println("No transcription available, exiting...")
+				os.Exit(0)
+			}
+
+			aiAnswer := answerUser(oc, userTranscription)
+			filepath, err := speak(whisperClient, aiAnswer)
+			if err != nil {
+				log.Fatal("Error transforming text to speech: ", err)
+			}
+			log.Println(filepath)
+		}
 	}
 }
 
