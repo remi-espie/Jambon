@@ -19,6 +19,7 @@ func main() {
 	eventNamespace := loadConfig("EVENT_NAMESPACE")
 	ollamaHost := loadConfig("OLLAMA_HOST")
 	whisperHost := loadConfig("WHISPER_HOST")
+	disableAutofix := loadConfig("AUTOFIX_GET_OUT_OF_MY_WAY")
 
 	log.Println("Using event", eventName, "in namespace", eventNamespace)
 
@@ -32,6 +33,15 @@ func main() {
 		whisperClient := openaiClient(whisperHost)
 		oc, ollama := initPrompt(ollamaHost, event.Message)
 		log.Println("Ollama response:", ollama)
+
+		// Autofix
+		if len(disableAutofix) == 0 {
+			repoPath := cloneRepo()
+			resource := getResourceContents(repoPath)
+			fixedResource := promptAutofix(oc, event.Message, resource)
+			setResourceContents(repoPath, fixedResource)
+		}
+
 		// TTS
 		filepath, err := speak(whisperClient, ollama)
 		if err != nil {
