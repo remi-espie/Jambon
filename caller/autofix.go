@@ -12,6 +12,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"github.com/google/go-github/v72/github"
 	"github.com/google/uuid"
 )
@@ -24,15 +25,22 @@ const (
 	githubRepoName = "Jambon"
 )
 
-func cloneRepo() (*git.Repository, string) {
+func cloneRepo(sshKey string) (*git.Repository, string) {
 	uuid := uuid.New()
 	dirName := fmt.Sprintf("jambon-%s", uuid.String())
 	dirPath := path.Join(os.TempDir(), dirName)
 	log.Print("Repository clone path: ", dirPath)
 
+	publicKey, err := ssh.NewPublicKeys("git", []byte(sshKey), "")
+
+	if err != nil {
+		log.Fatal("Unable to create the SSH public key for git:", err)
+	}
+
 	repo, err := git.PlainClone(dirPath, false, &git.CloneOptions{
 	    URL:      repoURL,
 	    Progress: os.Stdout,
+	    Auth:     publicKey,
 	})
 
 	if err != nil {

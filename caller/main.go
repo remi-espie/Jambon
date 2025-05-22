@@ -21,6 +21,7 @@ func main() {
 	ollamaHost := loadConfig("OLLAMA_HOST")
 	whisperHost := loadConfig("WHISPER_HOST")
 	disableAutofix := loadConfig("AUTOFIX_GET_OUT_OF_MY_WAY")
+	sshKey := loadConfig("GIT_SSH_KEY")
 	githubToken := loadConfig("GITHUB_TOKEN")
 
 	log.Println("Using event", eventName, "in namespace", eventNamespace)
@@ -32,7 +33,7 @@ func main() {
 
 	// Autofix
 	if len(disableAutofix) == 0 {
-		repo, repoPath := cloneRepo()
+		repo, repoPath := cloneRepo(sshKey)
 		resource := getResourceContents(repoPath)
 		oc := createOllamaClient(ollamaHost)
 
