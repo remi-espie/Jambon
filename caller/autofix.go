@@ -18,7 +18,7 @@ import (
 
 const (
 	repoURL = "git@github.com:remi-espie/Jambon.git"
-	resourcePath = "apps/nginx/templates/pod.yml"
+	resourcePath = "apps/nginx/templates/deployment.yml"
 
 	githubRepoOwner = "remi-espie"
 	githubRepoName = "Jambon"
