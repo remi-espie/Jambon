@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/google/uuid"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +13,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"log"
 )
 
 func getEvent(client *kubernetes.Clientset) watch.Interface {
@@ -61,7 +62,7 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 					Containers: []corev1.Container{
 						{
 							Name:  "jambon-caller",
-							Image: "jambon-caller",
+							Image: "ghcr.io/remi-espie/jambon-caller:main",
 							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace, "-ollama_host", ollamaHost, "whisper_host", whisperHost},
 						},
 					},
