@@ -1,9 +1,12 @@
 package main
 
 import (
-	"github.com/xyproto/ollamaclient"
+	"fmt"
 	"log"
 	"strings"
+	"regexp"
+
+	"github.com/xyproto/ollamaclient"
 )
 
 func createOllamaClient(ollamaHost string) *ollamaclient.Config {
@@ -37,4 +40,22 @@ func answerUser(oc *ollamaclient.Config, message string) string {
 	}
 	split := strings.SplitAfter(output, "</think>")
 	return strings.TrimSpace(split[len(split)-1])
+}
+
+func promptAutofix(oc *ollamaclient.Config, eventMessage string, resource string) string {
+	thinkRegex := regexp.MustCompile(`<think>[\s\S]*</think>`)
+	contentRegex := regexp.MustCompile(`\x60\x60\x60.*\s([\s\S]*)\x60\x60\x60`)
+
+	prompt := fmt.Sprintf("You are a Kubernetes expert. The following event occurred in the cluster: `%s`.\nThe associated manifest is this one:\n```yaml\n%s\n```\nPlease fix the error. Only tell me the complete, fixed file in a code block. Don't say anything else. Only do modifications that solve the issue, and nothing else. Don't overthink this.", eventMessage, resource)
+	output, err := oc.GetOutputWithSeedAndTemp(prompt, true, 42, 0.7)
+	log.Println("Ollama response autofix:", output)
+	if err != nil {
+		log.Fatal("Error getting ollama output:", err)
+	}
+
+	output = thinkRegex.ReplaceAllLiteralString(output, "")
+	output = contentRegex.FindStringSubmatch(output)[1]
+
+	log.Println("New resource file:", output)
+	return output
 }

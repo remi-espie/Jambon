@@ -32,6 +32,13 @@ func main() {
 		whisperClient := openaiClient(whisperHost)
 		oc, ollama := initPrompt(ollamaHost, event.Message)
 		log.Println("Ollama response:", ollama)
+
+		// Autofix
+		repoPath := cloneRepo()
+		resource := getResourceContents(repoPath)
+		fixedResource := promptAutofix(oc, event.Message, resource)
+		setResourceContents(repoPath, fixedResource)
+
 		// TTS
 		filepath, err := speak(whisperClient, ollama)
 		if err != nil {
