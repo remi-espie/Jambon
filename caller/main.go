@@ -32,6 +32,7 @@ func main() {
 	if len(disableAutofix) == 0 {
 		repoPath := cloneRepo()
 		resource := getResourceContents(repoPath)
+		oc := createOllamaClient(ollamaHost)
 		fixedResource := promptAutofix(oc, event.Message, resource)
 		setResourceContents(repoPath, fixedResource)
 
@@ -39,9 +40,11 @@ func main() {
 	}
 
 	if !autoresolved {
-		// Whisper
+		// AI Clients
+		oc := createOllamaClient(ollamaHost)
 		whisperClient := openaiClient(whisperHost)
-		oc, ollama := initPrompt(ollamaHost, event.Message)
+
+		ollama := promptCallUser(oc, event.Message)
 		log.Println("Ollama response:", ollama)
 
 		// TTS
@@ -61,7 +64,7 @@ func main() {
 			os.Exit(0)
 		}
 
-		aiAnswer := answerUser(oc, userTranscription)
+		aiAnswer := promptAnswerUser(oc, userTranscription)
 		log.Println("Ollama response:", aiAnswer)
 		if aiAnswer == "true" {
 			log.Println("User can intervene, exiting...")
