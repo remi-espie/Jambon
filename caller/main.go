@@ -26,21 +26,23 @@ func main() {
 	clientSet := createK8sClient()
 	event := getEvent(clientSet, eventName, eventNamespace)
 
-	autoresolve := false
+	autoresolved := false
 
-	if !autoresolve {
+	// Autofix
+	if len(disableAutofix) == 0 {
+		repoPath := cloneRepo()
+		resource := getResourceContents(repoPath)
+		fixedResource := promptAutofix(oc, event.Message, resource)
+		setResourceContents(repoPath, fixedResource)
+
+		autoresolved = true
+	}
+
+	if !autoresolved {
 		// Whisper
 		whisperClient := openaiClient(whisperHost)
 		oc, ollama := initPrompt(ollamaHost, event.Message)
 		log.Println("Ollama response:", ollama)
-
-		// Autofix
-		if len(disableAutofix) == 0 {
-			repoPath := cloneRepo()
-			resource := getResourceContents(repoPath)
-			fixedResource := promptAutofix(oc, event.Message, resource)
-			setResourceContents(repoPath, fixedResource)
-		}
 
 		// TTS
 		filepath, err := speak(whisperClient, ollama)
