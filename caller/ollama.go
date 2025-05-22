@@ -47,7 +47,6 @@ func promptAutofix(oc *ollamaclient.Config, eventMessage string, resource string
 
 	prompt := fmt.Sprintf("You are a Kubernetes expert. The following event occurred in the cluster: `%s`.\nThe associated manifest is this one:\n```yaml\n%s\n```\nPlease fix the error. Only tell me the complete, fixed file in a code block. Don't say anything else. Only do modifications that solve the issue, and nothing else. Don't overthink this.", eventMessage, resource)
 	output, err := oc.GetOutputWithSeedAndTemp(prompt, true, 42, 0.7)
-	log.Println("Ollama response autofix:", output)
 	if err != nil {
 		log.Fatal("Error getting ollama output:", err)
 	}
@@ -57,4 +56,15 @@ func promptAutofix(oc *ollamaclient.Config, eventMessage string, resource string
 
 	log.Println("New resource file:", output)
 	return output
+}
+
+func promptAutofixCommitMessage(oc *ollamaclient.Config, oldResource string, newResource string) string {
+	prompt := fmt.Sprintf("Here’s the original file:\n```yaml\n%s\n```\n\nHere’s the modified file:\n```yaml\n%s\n```\n\nGenerate a Git commit message that describes the change. The message must start with “autofix:”. Do not add any other prefixes. Only say the commit message and nothing else.", oldResource, newResource)
+	output, err := oc.GetOutputWithSeedAndTemp(prompt, true, 42, 0.7)
+	if err != nil {
+		log.Fatal("Error getting ollama output:", err)
+	}
+
+	split := strings.SplitAfter(output, "</think>")
+	return strings.TrimSpace(split[len(split)-1])
 }

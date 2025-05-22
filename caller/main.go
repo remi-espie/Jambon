@@ -30,11 +30,15 @@ func main() {
 
 	// Autofix
 	if len(disableAutofix) == 0 {
-		repoPath := cloneRepo()
+		repo, repoPath := cloneRepo()
 		resource := getResourceContents(repoPath)
 		oc := createOllamaClient(ollamaHost)
+
 		fixedResource := promptAutofix(oc, event.Message, resource)
 		setResourceContents(repoPath, fixedResource)
+
+		commitMessage := promptAutofixCommitMessage(oc, resource, fixedResource)
+		pushAutofix(repo, commitMessage)
 
 		autoresolved = true
 	}
