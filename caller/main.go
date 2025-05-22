@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -44,6 +45,7 @@ func main() {
 	}
 
 	if !autoresolved {
+		startTime := time.Now()
 		// AI Clients
 		oc := createOllamaClient(ollamaHost)
 		whisperClient := openaiClient(whisperHost)
@@ -70,6 +72,8 @@ func main() {
 
 		aiAnswer := promptAnswerUser(oc, userTranscription)
 		log.Println("Ollama response:", aiAnswer)
+		addCSVLine([]string{startTime.Format(time.RFC3339), "N/A", ollama, aiAnswer})
+
 		if aiAnswer == "true" {
 			log.Println("User can intervene, exiting...")
 		} else {
