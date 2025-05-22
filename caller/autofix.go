@@ -1,21 +1,27 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/google/go-github/v72/github"
 	"github.com/google/uuid"
 )
 
 const (
 	repoURL = "git@github.com:remi-espie/Jambon.git"
 	resourcePath = "apps/nginx/templates/pod.yml"
+
+	githubRepoOwner = "remi-espie"
+	githubRepoName = "Jambon"
 )
 
 func cloneRepo() (*git.Repository, string) {
@@ -103,5 +109,55 @@ func pushAutofix(repo *git.Repository, commitMessage string) {
 
 	if err != nil {
 		log.Fatal("Unable to push autofix to the remote:", err)
+	}
+}
+
+func mergeAutofix(repo *git.Repository, token string) {
+	client := github.NewClient(nil).WithAuthToken(token)
+
+	head, err := repo.Head()
+
+	if err != nil {
+		log.Fatal("Unable to get the git repository head:", err)
+	}
+
+	cIter, err := repo.Log(&git.LogOptions{From: head.Hash()})
+
+	if err != nil {
+		log.Fatal("Unable to get the git repository log iter:", err)
+	}
+
+	commit, err := cIter.Next()
+
+	if err != nil {
+		log.Fatal("Unable to get the first commit:", err)
+	}
+
+	cIter.Close()
+
+	commitTitle := strings.Split(commit.Message, "\n")[0]
+	headName := head.Name().Short()
+	baseName := "main"
+
+	pr, _, err := client.PullRequests.Create(context.TODO(), githubRepoOwner, githubRepoName, &github.NewPullRequest{
+		Title: &commitTitle,
+		Head: &headName,
+		Base: &baseName,
+	})
+
+	if err != nil {
+		log.Fatal("Unable to create the pull request:", err)
+	}
+
+	_, _, err = client.PullRequests.Merge(context.TODO(), githubRepoOwner, githubRepoName, *pr.Number, "", &github.PullRequestOptions{MergeMethod: "squash"})
+
+	if err != nil {
+		log.Fatal("Unable to merge the pull request:", err)
+	}
+
+	_, err = client.Git.DeleteRef(context.TODO(), githubRepoOwner, githubRepoName, head.Name().String())
+
+	if err != nil {
+		log.Fatal("Unable to delete the remote git branch:", err)
 	}
 }

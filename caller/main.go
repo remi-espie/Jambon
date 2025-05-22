@@ -20,6 +20,7 @@ func main() {
 	ollamaHost := loadConfig("OLLAMA_HOST")
 	whisperHost := loadConfig("WHISPER_HOST")
 	disableAutofix := loadConfig("AUTOFIX_GET_OUT_OF_MY_WAY")
+	githubToken := loadConfig("GITHUB_TOKEN")
 
 	log.Println("Using event", eventName, "in namespace", eventNamespace)
 
@@ -39,6 +40,7 @@ func main() {
 
 		commitMessage := promptAutofixCommitMessage(oc, resource, fixedResource)
 		pushAutofix(repo, commitMessage)
+		mergeAutofix(repo, githubToken)
 
 		autoresolved = true
 	}
