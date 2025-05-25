@@ -54,7 +54,7 @@ func initKubeClient(kubeconfig *string) *kubernetes.Clientset {
 func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost string, whisperHost string) *batchv1.Job {
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprint("jambon-caller_", uuid.New().String()),
+			Name: fmt.Sprint("jambon-caller-", uuid.New().String()),
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
