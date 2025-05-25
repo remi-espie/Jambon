@@ -64,7 +64,7 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 							Name:    "jambon-caller",
 							Image:   "ghcr.io/remi-espie/jambon-caller:feat-ci",
 							Command: []string{"./main"},
-							Args:    []string{"-event_name", event.Name, "-event_namespace", event.Namespace},
+							Args:    []string{"-EVENT_NAME", event.Name, "-EVENT_NAMESPACE", event.Namespace},
 							Env: []corev1.EnvVar{
 								{
 									Name: "GIT_SSH_KEY",
