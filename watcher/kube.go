@@ -61,9 +61,10 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:  "jambon-caller",
-							Image: "ghcr.io/remi-espie/jambon-caller:feat-ci",
-							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace},
+							Name:    "jambon-caller",
+							Image:   "ghcr.io/remi-espie/jambon-caller:feat-ci",
+							Command: []string{"./main"},
+							Args:    []string{"-event_name", event.Name, "-event_namespace", event.Namespace},
 							Env: []corev1.EnvVar{
 								{
 									Name: "GIT_SSH_KEY",
@@ -96,8 +97,10 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 									Value: whisperHost,
 								},
 							},
+							ImagePullPolicy: "Always",
 						},
 					},
+
 					RestartPolicy: corev1.RestartPolicyOnFailure,
 				},
 			},
