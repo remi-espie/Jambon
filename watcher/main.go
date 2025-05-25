@@ -8,6 +8,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	"log"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -40,8 +41,11 @@ func main() {
 				continue
 			}
 			log.Printf("Event type: %s, Name: %s, Reason: %s, Message: %s\n", kubeEvent.Type, kubeEvent.Name, kubeEvent.Reason, kubeEvent.Message)
-			if kubeEvent.Type == "Warning" {
+			if kubeEvent.Type == "Warning" && kubeEvent.Count == 1 {
 				launchJob(client, *kubeEvent, ollamaHost, whisperHost)
+
+				// WORKAROUND avoid causing a DoS
+				time.Sleep(5 * time.Second)
 			}
 		}
 	}
