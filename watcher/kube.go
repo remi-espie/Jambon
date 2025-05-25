@@ -70,9 +70,9 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 									ValueFrom: &corev1.EnvVarSource{
 										SecretKeyRef: &corev1.SecretKeySelector{
 											LocalObjectReference: corev1.LocalObjectReference{
-												Name: "git-ssh-secret",
+												Name: "jambon-git-ssh-key",
 											},
-											Key: "key",
+											Key: "id_rsa",
 										},
 									},
 								},
