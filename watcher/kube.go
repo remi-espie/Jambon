@@ -63,7 +63,39 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 						{
 							Name:  "jambon-caller",
 							Image: "ghcr.io/remi-espie/jambon-caller:feat-ci",
-							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace, "-ollama_host", ollamaHost, "whisper_host", whisperHost},
+							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace},
+							Env: []corev1.EnvVar{
+								{
+									Name: "GIT_SSH_KEY",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "git-ssh-secret",
+											},
+											Key: "key",
+										},
+									},
+								},
+								{
+									Name: "GITHUB_TOKEN",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "github-api-secret",
+											},
+											Key: "key",
+										},
+									},
+								},
+								{
+									Name:  "OLLAMA_HOST",
+									Value: ollamaHost,
+								},
+								{
+									Name:  "WHISPER_HOST",
+									Value: whisperHost,
+								},
+							},
 						},
 					},
 					RestartPolicy: corev1.RestartPolicyOnFailure,
