@@ -62,7 +62,7 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 					Containers: []corev1.Container{
 						{
 							Name:  "jambon-caller",
-							Image: "ghcr.io/remi-espie/jambon-caller:main",
+							Image: "ghcr.io/remi-espie/jambon-caller:feat-ci",
 							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace, "-ollama_host", ollamaHost, "whisper_host", whisperHost},
 						},
 					},
