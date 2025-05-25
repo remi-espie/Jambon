@@ -33,6 +33,9 @@ RUN apt update && apt-get install -y \
 
 WORKDIR /root/
 
+# Set Git to not verify host keys
+ENV GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+
 # Copy the binary from builder
 COPY --from=builder /app/main .
 
