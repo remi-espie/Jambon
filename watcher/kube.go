@@ -64,7 +64,6 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 							Name:    "jambon-caller",
 							Image:   "ghcr.io/remi-espie/jambon-caller:feat-ci",
 							Command: []string{"./main"},
-							Args:    []string{"-EVENT_NAME", event.Name, "-EVENT_NAMESPACE", event.Namespace},
 							Env: []corev1.EnvVar{
 								{
 									Name: "GIT_SSH_KEY",
@@ -95,6 +94,14 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 								{
 									Name:  "WHISPER_HOST",
 									Value: whisperHost,
+								},
+								{
+									Name:  "EVENT_NAME",
+									Value: event.Name,
+								},
+								{
+									Name:  "EVENT_NAMESPACE",
+									Value: event.Namespace,
 								},
 							},
 							ImagePullPolicy: "Always",
