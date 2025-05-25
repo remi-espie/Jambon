@@ -107,8 +107,8 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 							ImagePullPolicy: "Always",
 						},
 					},
-
-					RestartPolicy: corev1.RestartPolicyOnFailure,
+					ServiceAccountName: "kube-system-events-viewer",
+					RestartPolicy:      corev1.RestartPolicyOnFailure,
 				},
 			},
 		},
