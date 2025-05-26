@@ -30,7 +30,8 @@ FROM debian:bookworm
 RUN apt update && apt-get install -y \
     alsa-utils \
     libasound2 \
-    openssh-client
+    openssh-client \
+    ca-certificates
 
 WORKDIR /root/
 
