@@ -40,6 +40,8 @@ RUN mkdir -p /root/.ssh && \
     chmod 600 /root/.ssh/config && \
     chmod 700 /root/.ssh
 
+COPY known_hosts /root/.ssh/known_hosts
+
 # Also set the environment variable explicitly
 ENV SSH_KNOWN_HOSTS=/root/.ssh/known_hosts
 
