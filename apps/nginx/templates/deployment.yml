@@ -1,11 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: nginx
   labels:
     app: nginx
-  annotations:
-    deployment.kubernetes.io/revision: "1"
 spec:
   replicas: 1
   selector:
@@ -23,31 +21,4 @@ spec:
         - containerPort: 80
         resources:
           limits:
-            memory: "512Mi"
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 80
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 80
-      - name: init-container
-        image: nginx:latest
-        args:
-        - "nginx"
-        - "-g"
-        - "daemon off;"
-        resources:
-          limits:
-            memory: "512Mi"
-        volumeMounts:
-        - name: nginx-volume
-          mountPath: /
-        - name: config-volume
-          mountPath: /etc/nginx
-      volume:
-      - name: nginx-volume
-        emptyDir: {}
-      - name: config-volume
-        emptyDir: {}
+            memory: "1Mi"
