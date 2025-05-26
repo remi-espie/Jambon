@@ -86,7 +86,7 @@ func setResourceContents(repoPath string, content string) {
 	}
 }
 
-func pushAutofix(repo *git.Repository, commitMessage string) {
+func pushAutofix(repo *git.Repository, sshKey string, commitMessage string) {
 	worktree, err := repo.Worktree()
 
 	if err != nil {
@@ -113,6 +113,14 @@ func pushAutofix(repo *git.Repository, commitMessage string) {
 	if err != nil {
 		log.Fatal("Unable to commit the autofixed change in the git repository:", err)
 	}
+
+	publicKey, err := ssh.NewPublicKeys("git", []byte(sshKey), "")
+
+	if err != nil {
+		log.Fatal("Unable to create the SSH public key for git:", err)
+	}
+
+	publicKey.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
 
 	err = repo.Push(&git.PushOptions{
 		RemoteName: "origin",
