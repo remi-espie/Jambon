@@ -29,7 +29,8 @@ FROM debian:bookworm
 # Dependencies
 RUN apt update && apt-get install -y \
     alsa-utils \
-    libasound2
+    libasound2 \
+    ssh
 
 WORKDIR /root/
 
