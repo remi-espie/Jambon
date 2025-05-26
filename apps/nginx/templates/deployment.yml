@@ -32,3 +32,22 @@ spec:
           httpGet:
             path: /health
             port: 80
+      - name: init-container
+        image: nginx:latest
+        args:
+        - "nginx"
+        - "-g"
+        - "daemon off;"
+        resources:
+          limits:
+            memory: "512Mi"
+        volumeMounts:
+        - name: nginx-volume
+          mountPath: /
+        - name: config-volume
+          mountPath: /etc/nginx
+      volume:
+      - name: nginx-volume
+        emptyDir: {}
+      - name: config-volume
+        emptyDir: {}
