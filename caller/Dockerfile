@@ -29,7 +29,8 @@ FROM debian:bookworm
 # Dependencies
 RUN apt update && apt-get install -y \
     alsa-utils \
-    libasound2
+    libasound2 \
+    openssh-client
 
 WORKDIR /root/
 
@@ -39,6 +40,7 @@ RUN mkdir -p /root/.ssh && \
     chmod 600 /root/.ssh/config && \
     chmod 700 /root/.ssh
 
+RUN eval $(ssh-agent -s)
 
 # Also set the environment variable explicitly
 ENV SSH_KNOWN_HOSTS=/root/.ssh/known_hosts
