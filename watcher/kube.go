@@ -61,9 +61,8 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{
 						{
-							Name:    "jambon-caller",
-							Image:   "ghcr.io/remi-espie/jambon-caller:feat-ci",
-							Command: []string{"./main"},
+							Name:  "jambon-caller",
+							Image: "ghcr.io/remi-espie/jambon-caller:feat-ci",
 							Env: []corev1.EnvVar{
 								{
 									Name: "GIT_SSH_KEY",
