@@ -124,6 +124,7 @@ func pushAutofix(repo *git.Repository, sshKey string, commitMessage string) {
 
 	err = repo.Push(&git.PushOptions{
 		RemoteName: "origin",
+		Auth:       publicKey,
 	})
 
 	if err != nil {
