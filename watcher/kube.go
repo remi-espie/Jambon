@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+
 	"github.com/google/uuid"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -11,7 +13,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	"log"
 )
 
 func getEvent(client *kubernetes.Clientset) watch.Interface {
@@ -53,7 +54,7 @@ func initKubeClient(kubeconfig *string) *kubernetes.Clientset {
 func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost string, whisperHost string) *batchv1.Job {
 	job := batchv1.Job{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: fmt.Sprint("jambon-caller_", uuid.New().String()),
+			Name: fmt.Sprint("jambon-caller-", uuid.New().String()),
 		},
 		Spec: batchv1.JobSpec{
 			Template: corev1.PodTemplateSpec{
@@ -61,11 +62,52 @@ func launchJob(client *kubernetes.Clientset, event corev1.Event, ollamaHost stri
 					Containers: []corev1.Container{
 						{
 							Name:  "jambon-caller",
-							Image: "jambon-caller",
-							Args:  []string{"-event_name", event.Name, "-event_namespace", event.Namespace, "-ollama_host", ollamaHost, "whisper_host", whisperHost},
+							Image: "ghcr.io/remi-espie/jambon-caller:feat-ci",
+							Env: []corev1.EnvVar{
+								{
+									Name: "GIT_SSH_KEY",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "jambon-git-ssh-key",
+											},
+											Key: "id_rsa",
+										},
+									},
+								},
+								{
+									Name: "GITHUB_TOKEN",
+									ValueFrom: &corev1.EnvVarSource{
+										SecretKeyRef: &corev1.SecretKeySelector{
+											LocalObjectReference: corev1.LocalObjectReference{
+												Name: "github-api-secret",
+											},
+											Key: "key",
+										},
+									},
+								},
+								{
+									Name:  "OLLAMA_HOST",
+									Value: ollamaHost,
+								},
+								{
+									Name:  "WHISPER_HOST",
+									Value: whisperHost,
+								},
+								{
+									Name:  "EVENT_NAME",
+									Value: event.Name,
+								},
+								{
+									Name:  "EVENT_NAMESPACE",
+									Value: event.Namespace,
+								},
+							},
+							ImagePullPolicy: "Always",
 						},
 					},
-					RestartPolicy: corev1.RestartPolicyOnFailure,
+					ServiceAccountName: "kube-system-events-viewer",
+					RestartPolicy:      corev1.RestartPolicyOnFailure,
 				},
 			},
 		},

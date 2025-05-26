@@ -41,7 +41,7 @@ func main() {
 		setResourceContents(repoPath, fixedResource)
 
 		commitMessage := promptAutofixCommitMessage(oc, resource, fixedResource)
-		pushAutofix(repo, commitMessage)
+		pushAutofix(repo, sshKey, commitMessage)
 		mergeAutofix(repo, githubToken)
 
 		autoresolved = true
