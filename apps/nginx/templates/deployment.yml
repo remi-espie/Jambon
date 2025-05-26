@@ -1,9 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: nginx-deployment
   labels:
     app: nginx
+  annotations:
+    deployment.kubernetes.io/revision: "1"
 spec:
   replicas: 1
   selector:
@@ -22,3 +24,11 @@ spec:
         resources:
           limits:
             memory: "512Mi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 80
