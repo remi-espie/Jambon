@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	ssh2 "golang.org/x/crypto/ssh"
 	"log"
 	"os"
 	"path"
@@ -18,11 +19,11 @@ import (
 )
 
 const (
-	repoURL = "git@github.com:remi-espie/Jambon.git"
+	repoURL      = "git@github.com:remi-espie/Jambon.git"
 	resourcePath = "apps/nginx/templates/deployment.yml"
 
 	githubRepoOwner = "remi-espie"
-	githubRepoName = "Jambon"
+	githubRepoName  = "Jambon"
 )
 
 func cloneRepo(sshKey string) (*git.Repository, string) {
@@ -37,10 +38,12 @@ func cloneRepo(sshKey string) (*git.Repository, string) {
 		log.Fatal("Unable to create the SSH public key for git:", err)
 	}
 
+	publicKey.HostKeyCallback = ssh2.InsecureIgnoreHostKey()
+
 	repo, err := git.PlainClone(dirPath, false, &git.CloneOptions{
-	    URL:      repoURL,
-	    Progress: os.Stdout,
-	    Auth:     publicKey,
+		URL:      repoURL,
+		Progress: os.Stdout,
+		Auth:     publicKey,
 	})
 
 	if err != nil {
@@ -97,13 +100,13 @@ func pushAutofix(repo *git.Repository, commitMessage string) {
 	}
 
 	commitSig := object.Signature{
-		Name: "Qwen",
+		Name:  "Qwen",
 		Email: "qwen@jambon.bayonne",
-		When: time.Now(),
+		When:  time.Now(),
 	}
 
 	_, err = worktree.Commit(commitMessage, &git.CommitOptions{
-		Author: &commitSig,
+		Author:    &commitSig,
 		Committer: &commitSig,
 	})
 
@@ -149,8 +152,8 @@ func mergeAutofix(repo *git.Repository, token string) {
 
 	pr, _, err := client.PullRequests.Create(context.TODO(), githubRepoOwner, githubRepoName, &github.NewPullRequest{
 		Title: &commitTitle,
-		Head: &headName,
-		Base: &baseName,
+		Head:  &headName,
+		Base:  &baseName,
 	})
 
 	if err != nil {

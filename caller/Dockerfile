@@ -29,13 +29,19 @@ FROM debian:bookworm
 # Dependencies
 RUN apt update && apt-get install -y \
     alsa-utils \
-    libasound2 \
-    ssh
+    libasound2
 
 WORKDIR /root/
 
-# Set Git to not verify host keys
-ENV GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no"
+# Create SSH directory and proper config
+RUN mkdir -p /root/.ssh && \
+    echo "Host *\n\tStrictHostKeyChecking no\n\tUserKnownHostsFile /dev/null" > /root/.ssh/config && \
+    chmod 600 /root/.ssh/config && \
+    chmod 700 /root/.ssh
+
+
+# Also set the environment variable explicitly
+ENV SSH_KNOWN_HOSTS=/root/.ssh/known_hosts
 
 # Copy the binary from builder
 COPY --from=builder /app/main .
